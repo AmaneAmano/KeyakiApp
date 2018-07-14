@@ -87,10 +87,10 @@ def make_dir(dir_path):
         os.mkdir(dir_path)
 
 
-def write_log(log_file, image_path, response):
+def write_log(log_file, status, image_path, response):
     with open(log_file, "a") as log:
-        log_text = datetime.strftime(datetime.now(), "<%Y-%m-%d %H:%M:%S>") + " " \
-                   + "Found_face " + f"[{image_path}] " + "Result " + str(response) + "\n"
+        log_text = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S ") + f"{status} " +\
+                   f"[{image_path}] " + str(response) + "\n"
         log.write(log_text)
 
 
@@ -102,14 +102,23 @@ def main_process(image_file_path, apk):
         response = call_api(img, apk)
 
         if response == []:
-            print(f"No result: {image_file_path}")
+            status = "NOTFOUND"
             write_log(LOG_FILE, image_file_path, response)
+            print(f"{status}: {image_file_path}")
         else:
             for r in response:
-                x, y, w, h = detect_face_areas(r)
-                save_face_area(image_file_path, x, y, w, h)
-                print(f"Save a face of {image_file_path}")
-                write_log(LOG_FILE, image_file_path, r)
+                try:
+                    x, y, w, h = detect_face_areas(r)
+                except Exception as error:
+                    status = f"{str(error.__class__)}{error}. {error.__doc__}"
+                    write_log(LOG_FILE, status, image_file_path, r)
+                    print(f"{status}: {image_file_path}")
+                else:
+                    save_face_area(image_file_path, x, y, w, h)
+                    status = "FOUND"
+                    write_log(LOG_FILE, status, image_file_path, r)
+                    print(f"{status}: {image_file_path}")
 
 
-# Parallel(n_jobs=-1)([delayed(main_process)(file_path, API_KEY) for file_path in file_path_list])
+Parallel(n_jobs=-1)([delayed(main_process)(file_path, API_KEY) for file_path in FILE_PATH_LIST])
+
