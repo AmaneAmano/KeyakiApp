@@ -1,14 +1,26 @@
 """
 Using Azure FaceAPI, detect faces.
 save face image to output directory
+
+todo: joblibが原因？のエラーをなんとかする
+todo: エラー処理書け
+
 """
 import requests
 import cv2
 import glob
 import os
 import dotenv
+import hashlib
+from random import random
 from datetime import datetime
 from joblib import Parallel, delayed
+
+path = os.path.join(os.path.dirname(__file__), ".env")
+dotenv.load_dotenv(path)
+API_KEY = os.environ.get("FACE_API_KEY")
+
+FILE_PATH_LIST = glob.glob("..\\images\\*\\*")
 
 
 def call_api(binary_image, api_key):
@@ -47,6 +59,18 @@ def detect_face_areas(response_json):
     return top, left, width, height
 
 
+def create_saving_path(file_path):
+    save_dir = "..\\face_images\\"
+
+    ext = file_path.split(".")[-1]
+    image_dir, filename = file_path.split("\\")[2:]
+    image_dir = save_dir + image_dir
+    filename = hashlib.md5(f"{filename}+{random()}".encode("utf-8")).hexdigest() + f".{ext}"
+
+    file_path = os.path.join(image_dir, filename)
+    return file_path
+
+
 def save_face_area(image_file_path, x_, y_, w_, h_):
     # save face area as image file.
 
@@ -61,12 +85,6 @@ def make_dir(dir_path):
     dir_path = os.path.join("..\\face_images", dir_path)
     if not os.path.isdir(dir_path):
         os.mkdir(dir_path)
-
-
-def create_saving_path(file_path):
-    file_path = "\\".join(file_path.split("\\")[2:])
-    file_path = os.path.join("..\\face_images", file_path)
-    return file_path
 
 
 def write_log(log_file, image_path, response):
@@ -93,12 +111,6 @@ def main_process(image_file_path, apk):
                 print(f"Save a face of {image_file_path}")
                 write_log(LOG_FILE, image_file_path, r)
 
-
-path = os.path.join(os.path.dirname(__file__), ".env")
-dotenv.load_dotenv(path)
-API_KEY = os.environ.get("FACE_API_KEY")
-
-file_path_list = glob.glob("..\\images\\*\\*")
 
 # Parallel(n_jobs=-1)([delayed(main_process)(file_path, API_KEY) for file_path in file_path_list])
 
