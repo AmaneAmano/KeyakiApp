@@ -113,10 +113,3 @@ def main_process(image_file_path, apk):
 
 
 # Parallel(n_jobs=-1)([delayed(main_process)(file_path, API_KEY) for file_path in file_path_list])
-
-
-with open("..\\images\\akane_moriya\\02189_akane_moriya.jpg", "rb") as f:
-    img = f.read()
-    response = call_api(img, API_KEY)
-    for r in response:
-        print(r)
