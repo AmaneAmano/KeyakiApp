@@ -103,7 +103,7 @@ def main_process(image_file_path, apk):
 
         if response == []:
             status = "NOTFOUND"
-            write_log(LOG_FILE, image_file_path, response)
+            write_log(LOG_FILE, status, image_file_path, response)
             print(f"{status}: {image_file_path}")
         else:
             for r in response:
