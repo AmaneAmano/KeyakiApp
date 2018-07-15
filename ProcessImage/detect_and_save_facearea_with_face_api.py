@@ -109,16 +109,19 @@ def main_process(image_file_path, apk):
             for r in response:
                 try:
                     x, y, w, h = detect_face_areas(r)
+                    save_face_area(image_file_path, x, y, w, h)
                 except Exception as error:
                     status = f"{str(error.__class__)}{error}. {error.__doc__}"
                     write_log(LOG_FILE, status, image_file_path, r)
                     print(f"{status}: {image_file_path}")
                 else:
-                    save_face_area(image_file_path, x, y, w, h)
                     status = "FOUND"
                     write_log(LOG_FILE, status, image_file_path, r)
                     print(f"{status}: {image_file_path}")
 
+
+# FILE_PATH_LIST.index("..\\images\\konoka_matsuda\\00278_konoka_matsuda.jpg")
+FILE_PATH_LIST = FILE_PATH_LIST[10758:]
 
 Parallel(n_jobs=-1)([delayed(main_process)(file_path, API_KEY) for file_path in FILE_PATH_LIST])
 
